@@ -1,102 +1,76 @@
 # NVIDIA iQuHACK 2026 Challenge
 
-# GPU-Accelerated Quantum Optimization of LABS Sequences
+# Hybrid Quantum-Classical Optimization for LABS ($N=25$)
+**Author:** Taofeek Kassim  
+**Research Focus:** Applied Physics & Scientific Computing  
+**Tech Stack:** NVIDIA CUDA-Q, Python, SciPy, Matplotlib
 
-## Overview
+## 1. Project Overview
+This project investigates the **Low Autocorrelation Binary Sequence (LABS)** problem, a notorious NP-Hard challenge in signal processing. The objective is to find a bipolar sequence $s = \{s_1, \dots, s_{n}\}$ where $s_i \in \{+1, -1\}$ that minimizes the total sidelobe energy $E$.
 
-This project implements a **Variational Quantum-Classical Loop** using **NVIDIA CUDA-Q** to solve the **Low Autocorrelation Binary Sequence (LABS)** problem. The LABS problem is an NP-Hard optimization challenge in signal processing and physics, where the goal is to find a binary sequence $s = \{s_1, s_2, ..., s_n\}$ with $s_i \in \{+1, -1\}$ that minimizes the total energy (squared autocorrelation).
-
-
-
-For $N=25$, the search space contains $2^{25} \approx 33.5$ million possible configurations. This implementation leverages GPU acceleration to simulate a 25-qubit system and optimize the sequence using a QAOA-inspired framework.
-
----
-
-## Technical Specifications
-
-- **Framework:** CUDA-Q (C++/Python Hybrid)
-
-- **Algorithm:** QAOA (Quantum Approximate Optimization Algorithm)
-
-- **Circuit Depth:** $p=1$
-
-- **Qubits:** 25
-
-- **Optimizer:** COBYLA (Multi-start strategy)
-
-- **Backend:** NVIDIA GPU-accelerated Quantum Simulator (cuQuantum)
+At $N=25$, the search space consists of $2^{25} \approx 33.5$ million possible configurations. This implementation provides a technical proof of why pure quantum approaches (like QAOA) struggle with **Barren Plateaus** at low depths and how a **Hybrid Heuristic** successfully navigates the energy landscape.
 
 ---
 
-## The Physics: Hamiltonian Mapping
+## 2. The Optimization Stages
 
-The cost function for the LABS problem is defined as the sum of squared autocorrelations:
+### Stage 1: The Quantum Seed (Barren Plateau Proof)
+Using a GPU-accelerated QAOA kernel on an NVIDIA T4, the initial optimization reached a verified energy of **288**. 
 
-$$E = \sum_{k=1}^{n-1} \left( \sum_{i=1}^{n-k} s_i s_{i+k} \right)^2$$
+* **The Problem:** The optimizer encountered a **Barren Plateau**. As the number of qubits ($N=25$) increases, the gradient of the cost function becomes exponentially flat.
+* **Result:** The classical optimizer (COBYLA) lost its "direction," causing the system to settle into a high-energy local minimum.
+* **Energy ($E$):** 288
+* **Merit Factor ($MF$):** 1.08
 
 
-In this project, we map this classical objective function into a **4-qubit interaction Hamiltonian** using Pauli-Z operators:
 
-$$H = \sum_{k, i, j} Z_i Z_{i+k} Z_j Z_{j+k}$$
+### Stage 2: Hybrid Refinement (The Bypass)
+To overcome the plateau, the Stage 1 result was treated as a **Quantum Seed**. I implemented a classical Hill-Climbing refiner to perform a greedy local search starting from this seed.
 
-This mapping allows the quantum computer to explore the energy landscape via variational phase evolution.
+* **The Solution:** The quantum seed provided a non-random structural starting point. The classical refiner then identified the steep local gradients that the quantum kernel was too "flat" to detect.
+* **Energy ($E$):** 84
+* **Merit Factor ($MF$):** 3.72
+* **Performance:** A ~3.4x improvement in signal quality compared to the pure quantum baseline.
+
+
 
 ---
 
-## Results ($N=25$)
-
-The optimization was conducted using a multi-start strategy to avoid local minima traps.
-
-
-
-| Metric | Result |
-
-| :--- | :--- |
-
-| **Simulated Qubits** | 25 |
-
-| **Optimization Layers ($p$)** | 1 |
-
-| **Optimized Expectation Value** | 299.99 |
-
-| **Verified Sequence Energy** | 288 |
-
-| **Status** | Local Minimum Reached |
-
-
-
-
-
-
-
-### Analysis of Convergence & Barren Plateaus
-
-At $N=25$, the system successfully outperformed a random baseline (Verified Energy: 288 vs Random: ~350+). However, the results show evidence of the **Barren Plateau** phenomenon. Despite multiple restarts, the gradient became extremely small, causing the classical optimizer to plateau. 
-
-
-
-This behavior is typical for large-scale combinatorial optimization at low circuit depths ($p=1$). Future work would involve increasing the depth ($p \geq 3$) and utilizing "Warm-Starting" techniques to initialize parameters closer to the global minimum.
+## 3. Comparative Analysis & Visual Proof
+The visualization below provides the definitive proof of the optimization journey, showing the transition from the "Stalled" seed to the "Optimized" signal.
 
 ![Optimization Result](result_plot.png)
 
+
+![Optimization Result](result_1_plot.png)
+
+
+
 ---
 
-## How to Run
+## 4. Technical Implementation
 
-1. Ensure you have an NVIDIA environment with CUDA-Q installed.
+### Hamiltonian Mapping
+The classical cost function (sum of squared autocorrelations) was mapped to a **4-qubit interaction Hamiltonian** using Pauli-Z operators to allow for quantum phase evolution:
 
-2. Clone this repository:
+$$E = \sum_{k=1}^{n-1} \left( \sum_{i=1}^{n-k} s_i s_{i+k} \right)^2 \rightarrow H = \sum_{k, i, j} Z_i Z_{i+k} Z_j Z_{j+k}$$
 
+### Specifications
+| Metric | Specification |
+| :--- | :--- |
+| **Framework** | CUDA-Q |
+| **Backend** | NVIDIA `custatevec` GPU Simulator |
+| **Qubits** | 25 |
+| **Circuit Depth ($p$)** | 1 |
+| **Final Energy ($E$)** | **84** |
+| **Final Merit Factor ($MF$)** | **3.72** |
+
+---
+
+## 5. How to Run
+1. Ensure you have an NVIDIA environment with `cuda-quantum` installed.
+2. Clone the repository:
    ```bash
-
    git clone [https://github.com/Taophycc/NVIDIA-iQuHACK-2026.git](https://github.com/Taophycc/NVIDIA-iQuHACK-2026.git)
-
-3. Run the Jupyter Notebook or Python script:
-
-    ```bash
-
-    python qaoa_labs_optimization.py
-
-
-
-Author: Taofeek Kassim
+3. Open qaoa_labs_optimization.ipynb in Google Colab.
+4. Execute "Run All". The notebook is structured into sequential stages that will regenerate both the $E=288$ seed proof and the $E=84$ refined result.
