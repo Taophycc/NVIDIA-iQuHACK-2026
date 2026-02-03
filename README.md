@@ -1,6 +1,6 @@
 # NVIDIA iQuHACK 2026 Challenge
 
-# Hybrid Quantum-Classical Optimization for LABS ($N=25$)
+## Hybrid Quantum-Classical Optimization for LABS ($N=25$)
 **Author:** Taofeek Kassim  
 **Research Focus:** Applied Physics & Scientific Computing  
 **Tech Stack:** NVIDIA CUDA-Q, Python, SciPy, Matplotlib
@@ -72,5 +72,5 @@ $$E = \sum_{k=1}^{n-1} \left( \sum_{i=1}^{n-k} s_i s_{i+k} \right)^2 \rightarrow
 2. Clone the repository:
    ```bash
    git clone [https://github.com/Taophycc/NVIDIA-iQuHACK-2026.git](https://github.com/Taophycc/NVIDIA-iQuHACK-2026.git)
-3. Open qaoa_labs_optimization.ipynb in Google Colab.
+3. Open `qaoa_labs_optimization.ipynb` in Google Colab.
 4. Execute "Run All". The notebook is structured into sequential stages that will regenerate both the $E=288$ seed proof and the $E=84$ refined result.
