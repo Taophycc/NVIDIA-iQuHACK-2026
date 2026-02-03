@@ -39,9 +39,10 @@ To overcome the plateau, the Stage 1 result was treated as a **Quantum Seed**. I
 ## 3. Comparative Analysis & Visual Proof
 The visualization below provides the definitive proof of the optimization journey, showing the transition from the "Stalled" seed to the "Optimized" signal.
 
+E = 288
 ![Optimization Result](result_plot.png)
 
-
+E = 84 
 ![Optimization Result](result_1_plot.png)
 
 
